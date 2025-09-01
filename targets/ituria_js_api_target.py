@@ -27,7 +27,7 @@ def ituria_js_api_target(inputs: dict) -> dict:
             "http://localhost:8333/chat",
             json={"question": question},
             headers={"Content-Type": "application/json"},
-            timeout=300  # 5 minutes timeout for complex Torah analysis
+            timeout=600  # 10 minutes timeout for complex Torah analysis with reasoning
         )
         
         if response.status_code == 200:

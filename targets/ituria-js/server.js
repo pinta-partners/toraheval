@@ -3,13 +3,17 @@
 import express from 'express';
 import cors from 'cors';
 import { createAnthropic } from '@ai-sdk/anthropic';
-import { generateText } from 'ai';
+import * as ai from 'ai';
 import { experimental_createMCPClient as createMCPClient } from 'ai';
 import { nanoid } from 'nanoid';
 import dotenv from 'dotenv';
+import { wrapAISDK } from 'langsmith/experimental/vercel';
 
 // Load environment variables
 dotenv.config();
+
+// Wrap AI SDK functions with LangSmith tracing
+const { generateText, streamText, generateObject, streamObject } = wrapAISDK(ai);
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -545,6 +549,7 @@ app.get('/health', (req, res) => {
     status: 'healthy',
     anthropic_configured: !!process.env.ANTHROPIC_API_KEY,
     mcp_connected: !!mcpClient,
+    langsmith_configured: !!process.env.LANGCHAIN_TRACING_V2 && !!process.env.LANGCHAIN_API_KEY,
     available_tools: Object.keys(jewishLibraryTools),
     timestamp: new Date().toISOString()
   });
@@ -552,7 +557,7 @@ app.get('/health', (req, res) => {
 
 app.post('/chat', async (req, res) => {
   try {
-    const { question, model = 'claude-3-5-sonnet-20241022' } = req.body;
+    const { question, model = 'claude-opus-4-1-20250805' } = req.body;
     
     if (!question || !question.trim()) {
       return res.status(400).json({ error: 'Question cannot be empty' });
@@ -589,17 +594,23 @@ The tools available to you are very powerful Jewish text search tools. Use them 
 
     // Generate response using AI SDK with real MCP tools
     const result = await generateText({
-      model: anthropic.languageModel('claude-3-5-sonnet-20241022'),
+      model: anthropic.languageModel(model),
       system: systemPrompt,
       prompt: question,
       tools: jewishLibraryTools,
-      maxSteps: 10,
-      maxTokens: 1000,
-      temperature: 0.1,
+      maxSteps:100,
+      maxTokens: 15000,
+      providerOptions: {
+        anthropic: {
+          thinking: { type: 'enabled', budgetTokens: 15000 },
+        },
+      },
     });
 
     res.json({
       answer: result.text,
+      reasoning: result.reasoning,
+      reasoningDetails: result.reasoningDetails,
       timestamp: new Date().toISOString()
     });
 
@@ -627,6 +638,7 @@ async function startServer() {
   app.listen(port, () => {
     console.log(`🚀 Ituria API Server running on http://localhost:${port}`);
     console.log(`📚 Anthropic API configured: ${!!process.env.ANTHROPIC_API_KEY}`);
+    console.log(`📊 LangSmith tracing configured: ${!!process.env.LANGCHAIN_TRACING_V2 && !!process.env.LANGCHAIN_API_KEY}`);
     console.log(`🔌 MCP Server connected: ${mcpConnected}`);
     if (mcpConnected) {
       console.log(`🛠️ Available tools: ${Object.keys(jewishLibraryTools).join(', ')}`);
