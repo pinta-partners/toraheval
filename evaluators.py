@@ -40,7 +40,7 @@ def correctness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """
     evaluator = create_llm_as_judge(
         prompt=SOURCE_CORRECTNESS_PROMPT,
-        model="anthropic:claude-3-5-sonnet-20241022",
+        model="anthropic:claude-sonnet-4-20250514",
         feedback_key="correctness",
     )
     eval_result = evaluator(
@@ -58,7 +58,7 @@ def helpfulness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """
     evaluator = create_llm_as_judge(
         prompt=RAG_HELPFULNESS_PROMPT,
-        model="anthropic:claude-3-5-sonnet-20241022",
+        model="anthropic:claude-sonnet-4-20250514",
         feedback_key="helpfulness",
     )
     eval_result = evaluator(
@@ -97,7 +97,7 @@ def torah_citation_evaluator(inputs: dict, outputs: dict, reference_outputs: dic
     """
     evaluator = create_llm_as_judge(
         prompt=TORAH_CITATION_PROMPT,
-        model="anthropic:claude-3-5-sonnet-20241022",
+        model="anthropic:claude-sonnet-4-20250514",
         feedback_key="torah_citations",
     )
     eval_result = evaluator(
@@ -136,7 +136,7 @@ def hebrew_handling_evaluator(inputs: dict, outputs: dict, reference_outputs: di
     """
     evaluator = create_llm_as_judge(
         prompt=HEBREW_HANDLING_PROMPT,
-        model="anthropic:claude-3-5-sonnet-20241022",
+        model="anthropic:claude-sonnet-4-20250514",
         feedback_key="hebrew_handling",
     )
     eval_result = evaluator(
@@ -174,7 +174,7 @@ def depth_analysis_evaluator(inputs: dict, outputs: dict, reference_outputs: dic
     """
     evaluator = create_llm_as_judge(
         prompt=DEPTH_ANALYSIS_PROMPT,
-        model="anthropic:claude-3-5-sonnet-20241022",
+        model="anthropic:claude-sonnet-4-20250514",
         feedback_key="depth_analysis",
     )
     eval_result = evaluator(
