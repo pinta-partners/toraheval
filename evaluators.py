@@ -27,6 +27,8 @@ Provide a score of true/false:
 - true: The response contains the exact source from the expected answer, even if additional context is present, some text is missing, or the format is slightly different
 - false: The response does not contain the exact source, or contains a different/incorrect source
 
+LOOK VERY CAREFULLY at the reference source and the actual response, some times the citing is little different due to a different splitting or different editions, and you will have to make the decision if it is the same source.
+
 SCORE: [true/false]
 COMMENT: [Brief explanation of whether the exact source was found or not]
 """
