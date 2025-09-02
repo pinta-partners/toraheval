@@ -54,7 +54,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
     "query": "Your natural language question in English",
     "reference": "Optional source filter",
     "topics": "Optional topic filter",
-    "limit": 25-50
+    "limit": 30-100
   }
 }
 \`\`\`
@@ -72,7 +72,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
   "name": "semantic_search",
   "arguments": {
     "query": "What does Judaism teach about prayer in the morning?",
-    "limit": 30
+    "limit": 40
   }
 }
 
@@ -495,42 +495,8 @@ async function initializeMCPClient() {
   }
 }
 
-// Convert Hebrew keywords for search
-function convertToHebrewKeywords(englishQuery) {
-  const keywordMapping = {
-    "prayer": "תפילה",
-    "shabbat": "שבת", 
-    "sabbath": "שבת",
-    "kasher": "כשר",
-    "kosher": "כשר",
-    "study": "לימוד",
-    "torah": "תורה", 
-    "talmud": "תלמוד",
-    "rabbi": "רב",
-    "synagogue": "בית כנסת",
-    "moses": "משה",
-    "law": "הלכה",
-    "ethics": "מוסר",
-    "business": "משא ומתן",
-    "charity": "צדקה",
-    "blessing": "ברכה",
-    "holiday": "חג",
-    "fast": "צום",
-    "marriage": "נישואין",
-    "divorce": "גירושין"
-  };
-  
-  const queryLower = englishQuery.toLowerCase();
-  const hebrewTerms = [];
-  
-  for (const [english, hebrew] of Object.entries(keywordMapping)) {
-    if (queryLower.includes(english)) {
-      hebrewTerms.push(hebrew);
-    }
-  }
-  
-  return hebrewTerms.length > 0 ? hebrewTerms.join(" AND ") : "הלכה OR מוסר OR תורה";
-}
+
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -590,13 +556,19 @@ Your role is to:
 
 **CRITICAL**: Never rely on prior knowledge - only use the provided search results from the tools.
 
-The tools available to you are very powerful Jewish text search tools. Use them extensively to find the most relevant sources before answering.`;
+The tools available to you are very powerful Jewish text search tools. Use them extensively to find the most relevant sources before answering.
+
+`
+;
+
+const prompt =  '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance.'
+
 
     // Generate response using AI SDK with real MCP tools
     const result = await generateText({
       model: anthropic.languageModel(model),
       system: systemPrompt,
-      prompt: question,
+      prompt: question + prompt,
       tools: jewishLibraryTools,
       maxSteps:100,
       maxTokens: 15000,
