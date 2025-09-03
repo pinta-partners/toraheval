@@ -16,7 +16,7 @@ with open('dataset/Q1-dataset.json', 'r', encoding='utf-8') as f:
     dataset_examples = json.load(f)
 
 # Create or get dataset in LangSmith
-dataset_name = "Torah Evaluation Dataset Type 1"
+dataset_name = "Torah Evaluation Dataset Type 1 - Updated"
 try:
     dataset = client.create_dataset(
         dataset_name=dataset_name, 

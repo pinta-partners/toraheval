@@ -6,7 +6,7 @@ import csv
 import json
 import sys
 
-def convert_csv_to_json(csv_path='datasetQ1.csv', json_path='Q1-dataset.json'):
+def convert_csv_to_json(csv_path='updated_dataset.csv', json_path='Q1-dataset.json'):
     """Convert CSV dataset to JSON format."""
     dataset = []
     

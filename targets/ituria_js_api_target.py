@@ -27,7 +27,7 @@ def ituria_js_api_target(inputs: dict) -> dict:
             "http://localhost:8333/chat",
             json={"question": question},
             headers={"Content-Type": "application/json"},
-            timeout=1200  # 20 minutes timeout for complex Torah analysis with reasoning
+            timeout=1800  # 30 minutes timeout for complex Torah analysis with reasoning
         )
         
         if response.status_code == 200:
@@ -39,6 +39,6 @@ def ituria_js_api_target(inputs: dict) -> dict:
     except requests.exceptions.ConnectionError:
         return {"answer": "Error: Could not connect to Ituria JavaScript API server. Make sure it's running on localhost:8333 (PORT=8333 npm start)"}
     except requests.exceptions.Timeout:
-        return {"answer": "Error: API request timed out (exceeded 1200 seconds)"}
+        return {"answer": "Error: API request timed out (exceeded 30 min.)"}
     except Exception as e:
         return {"answer": f"Error: {str(e)}"}

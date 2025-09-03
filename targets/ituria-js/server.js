@@ -29,6 +29,9 @@ const anthropic = createAnthropic({
 
 // Jewish Library usage prompt (exact same as original ituria)
 const jewish_library_usage_prompt = `
+
+Today's date is ${new Date().toISOString().split('T')[0]}.
+
 # Jewish Library MCP Server: LLM Usage Guide
 
 ## CRITICAL LANGUAGE REQUIREMENT
@@ -61,7 +64,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 
 **Key properties:**
 - Accepts English queries
-- Returns English results 
+- Returns Hebrew + English results 
 - Optimized for concept-based exploration
 - Always follow up with \`read_text\` to get complete passages,
  
@@ -89,7 +92,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 {
   "name": "keywords_search",
   "arguments": {
-    "text": "Hebrew/Aramaic search terms with operators",
+    "text": "Hebrew/Aramaic search terms/words",
     "reference": "Optional source filter",
     "topics": "Optional topic filter",
     "num_results": 50-100
@@ -108,8 +111,8 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 {
   "name": "keywords_search",
   "arguments": {
-    "text": "שבת מלאכה היתר",
-    "topics": "הלכה",
+    "text": "צדקה שפע ברכה",
+    "reference": "נועם אלימלך",
     "num_results": 60
   }
 }
@@ -117,7 +120,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 // After analyzing results
 {
   "name": "read_text",
-  "arguments": {"reference": "שולחן ערוך אורח חיים סימן שא"}
+  "arguments": {"reference": "נועם אלימלך פרשת דברים פסקה א"}
 }
 \`\`\`
 
@@ -136,9 +139,6 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 - Retrieves complete text passage
 - Requires exact reference format
 - Can be used directly or after search
-- Can be used to retrieve entire chapters or sections by omitting specific verse numbers
-- Always consider getting the entire chapter for a better context understanding
-
 **Example pattern:**
 \`\`\`json
 {
@@ -147,41 +147,23 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 }
 \`\`\`
 
-### Function: get_commentaries
-
-\`\`\`json
-{
-  "name": "get_commentaries",
-  "arguments": {
-    "reference": "Exact reference to retrieve commentaries for"
-  }
-}
-\`\`\`
-
-**Key properties:**
-- Returns a list of commentaries available for a specific reference
-- Requires exact reference format
-- Can be used to discover interpretations and explanations of texts
-- Always follow up with \`read_text\` to read the specific commentary
-
-**Example pattern:**
-\`\`\`json
-{
-  "name": "get_commentaries",
-  "arguments": {"reference": "בראשית פרק א פסוק א"}
-}
-
-// After receiving commentary references
-{
-  "name": "read_text",
-  "arguments": {"reference": "רשי על בראשית  פרק א פסוק א"}
-}
-\`\`\`
 
 ## Comprehensive Search Approach
 
 ### Always Use Both Search Methods
 For most queries, use BOTH semantic_search and keywords_search to ensure comprehensive results:
+For Semantic Search:
+- Use for conceptual understanding
+- create a few variations of the query if needed, to capture different angles
+
+For Keywords Search:
+- Use precise Hebrew/Aramaic terms
+- Include synonyms and related terms
+- if you get too many results, refine with more speficic terms or filter topics or references
+- if you get too few results, broaden terms or remove filters
+
+### Example Combined Search Pattern
+
 
 \`\`\`json
 // Step 1: Semantic search for concept understanding
@@ -203,52 +185,24 @@ For most queries, use BOTH semantic_search and keywords_search to ensure compreh
   }
 }
 
-// Step 3: Retrieve full texts and commentaries
+// Step 3: Retrieve full texts
 {
   "name": "read_text",
   "arguments": {"reference": "שולחן ערוך אורח חיים סימן רסג"}
 }
 
-// Step 4: Get commentaries on important passages
-{
-  "name": "get_commentaries",
-  "arguments": {"reference": "שולחן ערוך אורח חיים סימן רסג סעיף א"}
-}
-
-// Step 5: Read specific commentary
-{
-  "name": "read_text",
-  "arguments": {"reference": "משנה ברורה על שולחן ערוך אורח חיים סימן רסג סעיף א"}
-}
 \`\`\`
 
 ### Special Case: Direct Reference Queries
 If the user provides an exact reference, retrieve it directly but also consider getting the broader context and commentaries:
 
 \`\`\`json
-// Step 1: Retrieve the specific verse
+//  Retrieve the specific verse
 {
   "name": "read_text",
   "arguments": {"reference": "במדבר פרק יב פסוק ג"}
 }
 
-// Step 2: Retrieve the entire chapter for context
-{
-  "name": "read_text",
-  "arguments": {"reference": "במדבר פרק יב"}
-}
-
-// Step 3: Get commentaries on the specific verse
-{
-  "name": "get_commentaries",
-  "arguments": {"reference": "במדבר פרק יב פסוק ג"}
-}
-
-// Step 4: Read important commentaries
-{
-  "name": "read_text",
-  "arguments": {"reference": "רשי על במדבר פרק יב פסוק ג"}
-}
 \`\`\`
 
 
@@ -262,10 +216,27 @@ If the user provides an exact reference, retrieve it directly but also consider 
   "arguments": {"query": "What is the Jewish view on business ethics?"}
 }
 
+Step 1.1: try a few variations of the semantic query if needed
+  {
+  "name": "semantic_search",
+  "arguments": {"query": "How does Judaism define honesty in commerce?"}
+  }
+
 // Step 2: Keywords search in parallel
 {
   "name": "keywords_search",
   "arguments": {"text": "משא ומתן AND (אמונה OR יושר)", "topics": "הלכה"}
+}
+
+Step 2.1: refine keywords search if too many or too few results
+{
+  "name": "keywords_search",
+  "arguments": {"text": "משא ומתן AND יושר", "topics": "הלכה", "num_results": 70}
+}
+Step 2.2: broaden keywords search if too few results
+{
+  "name": "keywords_search",
+  "arguments": {"text": "משא ומתן", "topics": "הלכה", "num_results": 100}
 }
 
 // Step 3: Retrieve full text of relevant sources from both searches
@@ -274,74 +245,35 @@ If the user provides an exact reference, retrieve it directly but also consider 
   "arguments": {"reference": "בבא מציעא דף נח"}
 }
 
-// Step 4: Get commentaries on key passages
-{
-  "name": "get_commentaries",
-  "arguments": {"reference": "בבא מציעא דף נח:"}
-}
 \`\`\`
 
-### Pattern 2: Source Traversal with Commentaries
+### Pattern 2: Chained Exploration
 \`\`\`json
-// Step 1: Start with modern commentary
+// Step 1: Start with keywords search for specific terms
 {
-  "name": "read_text",
-  "arguments": {"reference": "משנה ברורה סימן שא"}
+  "name": "keywords_search",
+  "arguments": {"text": "צדקה AND ברכה", "num_results": 50}
 }
 
-// Step 2: Follow reference to earlier source
+// Step 2: Read full text of top relevant results
 {
   "name": "read_text",
-  "arguments": {"reference": "שולחן ערוך אורח חיים סימן שא"}
+  "arguments": {"reference": "משנה תורה הלכות מתנות עניים פרק יז הלכה א"}
 }
 
-// Step 3: Trace back to original Talmudic source
-{
-  "name": "read_text",
-  "arguments": {"reference": "שבת דף צו עמוד ב"}
-}
-
-// Step 4: Get commentaries on the Talmudic source
+// Step 3: Get commentaries on key passages
 {
   "name": "get_commentaries",
-  "arguments": {"reference": "שבת דף צו עמוד ב"}
+  "arguments": {"reference": "משנה תורה הלכות מתנות עניים פרק יז הלכה א"}
+}
+
+// Step 4: Read important commentaries for depth
+{
+  "name": "read_text",
+  "arguments": {"reference": "רמב"ם משנה תורה הלכות מתנות עניים פרק יז הלכה א פירוש הרמב"ם"}
 }
 \`\`\`
 
-### Pattern 3: Concept Exploration with Chapter Context
-\`\`\`json
-// Step 1: Find a key verse through searches
-{
-  "name": "semantic_search",
-  "arguments": {
-    "query": "Moses humility in the Bible",
-    "limit": 5
-  }
-}
-
-// Step 2: Read the specific verse
-{
-  "name": "read_text",
-  "arguments": {"reference": "במדבר פרק יב פסוק ג"}
-}
-
-// Step 3: Read the entire chapter for context
-{
-  "name": "read_text",
-  "arguments": {"reference": "במדבר פרק יב"}
-}
-
-// Step 4: Get and read key commentaries
-{
-  "name": "get_commentaries",
-  "arguments": {"reference": "במדבר פרק יב פסוק ג"}
-}
-
-{
-  "name": "read_text",
-  "arguments": {"reference": "רמבן על במדבר פרק יב פסוק ג"}
-}
-\`\`\`
 
 ## Best Practices for LLM Implementation
 
@@ -414,8 +346,7 @@ If the user provides an exact reference, retrieve it directly but also consider 
 ### For semantic_search results:
 1. Identify all source references provided
 2. Use \`read_text\` with these references to retrieve complete texts
-3. Use \`get_commentaries\` to find interpretations of important passages 
-4. Verify information from original sources before providing final answers
+3. Verify information from original sources before providing final answers
 
 ### For keywords_search results:
 1. Review returned snippets and highlighted terms
@@ -540,35 +471,25 @@ app.post('/chat', async (req, res) => {
     console.log(`Processing question: ${question}`);
 
     // System prompt for Torah Q&A (same as ituria)
-    const systemPrompt = jewish_library_usage_prompt + `
+    const systemPrompt =`You are a Torah scholar assistant with access to comprehensive Jewish text database tools.`
+    
 
-You are a Torah scholar assistant with access to comprehensive Jewish text database tools.
+const prompt = jewish_library_usage_prompt + `
 
-Today's date is ${new Date().toISOString().split('T')[0]}.
 
-Your role is to:
-1. Use the available Jewish library tools to search for relevant sources
-2. Always use BOTH semantic_search AND keywords_search for comprehensive results
-3. Follow up with read_text to get complete passages
-4. Get commentaries for important passages
-5. Provide accurate answers based ONLY on the sources found with the tools
-6. Respond in Rabbinical Hebrew as specified in the language requirements
-
-**CRITICAL**: Never rely on prior knowledge - only use the provided search results from the tools.
-
-The tools available to you are very powerful Jewish text search tools. Use them extensively to find the most relevant sources before answering.
-
-`
-;
-
-const prompt =  '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance.'
+ '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance. \n\n also, i know that that this speficic source exists in your corpus, so don\'t give up until you find it. \n\n now, answer the following question:\n\n'
+ 
+ 
+ now, answer the following question:\n\n
+ =========================================================\n\n`
+ ;
 
 
     // Generate response using AI SDK with real MCP tools
     const result = await generateText({
       model: anthropic.languageModel(model),
       system: systemPrompt,
-      prompt: question + prompt,
+      prompt:prompt + question ,
       tools: jewishLibraryTools,
       maxSteps:100,
       maxTokens: 15000,
