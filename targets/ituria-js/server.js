@@ -390,7 +390,6 @@ Step 2.2: broaden keywords search if too few results
 
 4. **Context Loss Prevention:**
    - Always read the entire chapter or section when examining specific verses
-   - Check for commentaries that might provide essential context
    - Consider the historical and cultural context of the text
 
 Remember: The purpose of this system is to provide accurate, source-based information from Jewish texts, not to generate creative interpretations. **USE ONLY SOURCES THAT YOU GOT FROM THE TOOLS AND NOT YOUR PRIOR KNOWLEDGE**
@@ -477,8 +476,9 @@ app.post('/chat', async (req, res) => {
 const prompt = jewish_library_usage_prompt + `
 
 
- '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance. \n\n also, i know that that this speficic source exists in your corpus, so don\'t give up until you find it. \n\n now, answer the following question:\n\n'
- 
+ '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance. 
+ write in detail **EVERY** relevant source with the correct citation.
+ \n\n also, i know that that this speficic source exists in your corpus, so don\'t give up until you find it.
  
  now, answer the following question:\n\n
  =========================================================\n\n`
@@ -498,6 +498,9 @@ const prompt = jewish_library_usage_prompt + `
           thinking: { type: 'enabled', budgetTokens: 15000 },
         },
       },
+       headers: {
+    'anthropic-beta': 'context-1m-2025-08-07',
+  },
     });
 
     res.json({

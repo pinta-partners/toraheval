@@ -9,7 +9,7 @@ from evaluators import get_evaluators, list_evaluators
 load_dotenv()
 
 # Initialize LangSmith client
-client = Client()
+client  = Client()
 
 # Load existing dataset
 with open('dataset/Q1-dataset.json', 'r', encoding='utf-8') as f:
@@ -79,7 +79,7 @@ if __name__ == "__main__":
         target_function,
         data=dataset_name,
         evaluators=evaluators,
-        experiment_prefix=f"torah-eval-{target_name}",
+        experiment_prefix=f"torah-eval-{target_name}"      
     )
     
     print(f"Evaluation complete! Results: {experiment_results}")
