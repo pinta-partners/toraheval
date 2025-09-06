@@ -428,6 +428,40 @@ async function initializeMCPClient() {
 
 
 
+// Query rewrite function
+async function rewriteQuery(originalQuery) {
+  try {
+    const rewritePrompt = `You are a Jewish text search assistant specializing in helping users ARTICULATE THEIR SEARCH QUERY to specific teachings, stories, or concepts in traditional Jewish sources. When given a vague or incomplete search query, generate a follow-up clarification question that will help narrow down exactly what the user is looking for.
+if its a clear enough query just reply with a nice rewritten query
+Original query: "${originalQuery}"
+Based on this query:
+1. Identify what information is missing (specific work, rabbi, concept, context, etc.)
+2. Determine if the user is seeking a specific passage or general teachings
+3. Consider what context clues might indicate the user knows a concept but lacks specific references
+Then create a follow-up question that:
+- Acknowledges what you understand from their query
+- Asks specifically about the missing information needed to conduct an effective search
+- Offers 1-2 potential directions if appropriate
+- Uses respectful, knowledgeable language familiar to someone studying Jewish texts
+Format your response as a single, clear question that will help the user articulate exactly what they're trying to find.
+NEVER USE ANY MCP SERVERS OR TOOLS YOUR ONLY JOB IS TO REWRITE FAILING QUERIES`;
+
+    const result = await generateText({
+      model: anthropic.languageModel('claude-sonnet-4-20250514'),
+      prompt: rewritePrompt,
+      maxTokens: 1000
+    });
+
+    console.log(`Original query: ${originalQuery}`);
+    console.log(`Rewritten query: ${result.text}`);
+    
+    return result.text;
+  } catch (error) {
+    console.error('Error rewriting query:', error);
+    return originalQuery; // Fall back to original query if rewrite fails
+  }
+}
+
 // Routes
 app.get('/', (req, res) => {
   res.json({
@@ -469,6 +503,9 @@ app.post('/chat', async (req, res) => {
 
     console.log(`Processing question: ${question}`);
 
+    // Step 1: Rewrite the query
+    const rewrittenQuery = await rewriteQuery(question);
+
     // System prompt for Torah Q&A (same as ituria)
     const systemPrompt =`You are a Torah scholar assistant with access to comprehensive Jewish text database tools.`
     
@@ -489,7 +526,7 @@ const prompt = jewish_library_usage_prompt + `
     const result = await generateText({
       model: anthropic.languageModel(model),
       system: systemPrompt,
-      prompt:prompt + question ,
+      prompt:prompt + rewrittenQuery ,
       tools: jewishLibraryTools,
       maxSteps:100,
       maxTokens: 15000,
