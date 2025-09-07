@@ -433,21 +433,28 @@ async function rewriteQuery(originalQuery) {
   try {
     const rewritePrompt = `You are a Jewish text search assistant specializing in helping users ARTICULATE THEIR SEARCH QUERY to specific teachings, stories, or concepts in traditional Jewish sources. When given a vague or incomplete search query, generate a follow-up clarification question that will help narrow down exactly what the user is looking for.
 if its a clear enough query just reply with a nice rewritten query
-Original query: "${originalQuery}"
 Based on this query:
 1. Identify what information is missing (specific work, rabbi, concept, context, etc.)
 2. Determine if the user is seeking a specific passage or general teachings
 3. Consider what context clues might indicate the user knows a concept but lacks specific references
-Then create a follow-up question that:
+Then create a rewritten query that:
 - Acknowledges what you understand from their query
 - Asks specifically about the missing information needed to conduct an effective search
 - Offers 1-2 potential directions if appropriate
 - Uses respectful, knowledgeable language familiar to someone studying Jewish texts
 Format your response as a single, clear question that will help the user articulate exactly what they're trying to find.
-NEVER USE ANY MCP SERVERS OR TOOLS YOUR ONLY JOB IS TO REWRITE FAILING QUERIES`;
+NEVER USE ANY MCP SERVERS OR TOOLS YOUR ONLY JOB IS TO REWRITE FAILING QUERIES
+DONT ASK THE USER ANY QUESTIONS FOR CLARIFICATION 
+
+RETURN ONLY THE REWRITTEN QUERY (OR THE ORIGINAL QUERY IF IT WAS CLEAR ENOUGH) AND NOT ANY OTHER TEXT
+
+==========================
+
+Query: ${originalQuery}
+`;
 
     const result = await generateText({
-      model: anthropic.languageModel('claude-sonnet-4-20250514'),
+      model: anthropic.languageModel('claude-opus-4-1-20250805'),
       prompt: rewritePrompt,
       maxTokens: 1000
     });
@@ -487,7 +494,7 @@ app.get('/health', (req, res) => {
 
 app.post('/chat', async (req, res) => {
   try {
-    const { question, model = 'claude-sonnet-4-20250514' } = req.body;
+    const { question, model = 'claude-opus-4-1-20250805' } = req.body;
     
     if (!question || !question.trim()) {
       return res.status(400).json({ error: 'Question cannot be empty' });

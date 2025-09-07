@@ -40,7 +40,7 @@ def correctness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """
     evaluator = create_llm_as_judge(
         prompt=SOURCE_CORRECTNESS_PROMPT,
-        model="anthropic:claude-sonnet-4-20250514",
+        model="anthropic:claude-opus-4-1-20250805",
         feedback_key="correctness",
     )
     eval_result = evaluator(
@@ -58,7 +58,7 @@ def helpfulness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """
     evaluator = create_llm_as_judge(
         prompt=RAG_HELPFULNESS_PROMPT,
-        model="anthropic:claude-sonnet-4-20250514",
+        model="anthropic:claude-opus-4-1-20250805",
         feedback_key="helpfulness",
     )
     eval_result = evaluator(
