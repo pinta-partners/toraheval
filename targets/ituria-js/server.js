@@ -494,7 +494,7 @@ app.get('/health', (req, res) => {
 
 app.post('/chat', async (req, res) => {
   try {
-    const { question, model = 'claude-opus-4-1-20250805' } = req.body;
+    const { question, model = 'claude-sonnet-4-20250514' } = req.body;
     
     if (!question || !question.trim()) {
       return res.status(400).json({ error: 'Question cannot be empty' });
