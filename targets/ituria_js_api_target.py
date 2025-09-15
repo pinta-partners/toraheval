@@ -4,13 +4,15 @@ Target function that uses the local Ituria JavaScript API server for Torah Q&A.
 import requests
 import json
 from typing import Dict
+from langsmith.run_helpers import get_current_run_tree, traceable
 
+@traceable(name="ituria_js_api_target")
 def ituria_js_api_target(inputs: dict) -> dict:
     """
     Torah Q&A system that uses the local JavaScript Ituria API server.
     
     This function:
-    1. Sends the question to the local JavaScript API server
+    1. Sends the question to the local JavaScript API server with distributed tracing headers
     2. Returns the response from the server that uses the same system as ituria
     
     Args:
@@ -22,11 +24,17 @@ def ituria_js_api_target(inputs: dict) -> dict:
     question = inputs["question"]
     
     try:
+        # Get current run tree for distributed tracing
+        headers = {"Content-Type": "application/json"}
+        if run_tree := get_current_run_tree():
+            # Add LangSmith tracing headers for distributed tracing
+            headers.update(run_tree.to_headers())
+        
         # Send request to local JavaScript API server
         response = requests.post(
             "http://localhost:8333/chat",
             json={"question": question},
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             timeout=1800  # 30 minutes timeout for complex Torah analysis with reasoning
         )
         
