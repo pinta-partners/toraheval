@@ -77,7 +77,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
   "name": "semantic_search",
   "arguments": {
     "query": "What does Judaism teach about prayer in the morning?",
-    "limit": 50
+    "limit": 80
   }
 }
 
@@ -94,7 +94,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 {
   "name": "keywords_search",
   "arguments": {
-    "text": "Hebrew/Aramaic search terms/words",
+    "text": "Hebrew/Aramaic/English search terms/words",
     "reference": "Optional source filter",
     "topics": "Optional topic filter",
     "num_results": 50-100
@@ -103,10 +103,11 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 \`\`\`
 
 **Key properties:**
-- Requires Hebrew/Aramaic terms
+- Works with Hebrew/Aramaic AND English terms
 - Supports elastic search syntax
 - Returns text snippets with highlights
 - Always follow up with \`read_text\` for complete context
+- **IMPORTANT**: Perform SEPARATE searches in Hebrew/Aramaic AND English to maximize coverage
 
 **Example pattern:**
 \`\`\`json
@@ -159,10 +160,11 @@ For Semantic Search:
 - create a few variations of the query if needed, to capture different angles
 
 For Keywords Search:
-- Use precise Hebrew/Aramaic terms
-- Include synonyms and related terms
-- if you get too many results, refine with more speficic terms or filter topics or references
-- if you get too few results, broaden terms or remove filters
+- Use precise Hebrew/Aramaic terms AND English terms (in separate searches)
+- Include synonyms and related terms in both languages
+- Perform multiple searches: one in Hebrew/Aramaic, one in English
+- If you get too many results, refine with more specific terms or filter topics or references
+- If you get too few results, broaden terms or remove filters
 
 ### Example Combined Search Pattern
 
@@ -173,15 +175,35 @@ For Keywords Search:
   "name": "semantic_search",
   "arguments": {
     "query": "What are the laws of Shabbat candles?",
-    "limit": 20
+    "limit": 60
   }
 }
 
-// Step 2: Keywords search for precise term matching
+// Step 2: Keywords search for precise term matching (Hebrew)
 {
   "name": "keywords_search",
   "arguments": {
     "text": "נר שבת (הדלקה OR הדלקת)",
+    "topics": "הלכה",
+    "num_results": 40
+  }
+}
+
+// Step 2b: Keywords search in English
+{
+  "name": "keywords_search",
+  "arguments": {
+    "text": "Shabbat candles lighting",
+    "topics": "הלכה",
+    "num_results": 40
+  }
+}
+
+// Step 2b: Keywords search in English
+{
+  "name": "keywords_search",
+  "arguments": {
+    "text": "Shabbat candles lighting",
     "topics": "הלכה",
     "num_results": 40
   }
@@ -215,13 +237,13 @@ If the user provides an exact reference, retrieve it directly but also consider 
 // Step 1: Semantic search for initial understanding
 {
   "name": "semantic_search",
-  "arguments": {"query": "What is the Jewish view on business ethics?"}
+  "arguments": {"query": "What is the Jewish view on business ethics?", "limit": 70}
 }
 
 Step 1.1: try a few variations of the semantic query if needed
   {
   "name": "semantic_search",
-  "arguments": {"query": "How does Judaism define honesty in commerce?"}
+  "arguments": {"query": "How does Judaism define honesty in commerce?", "limit": 65}
   }
 
 // Step 2: Keywords search in parallel
