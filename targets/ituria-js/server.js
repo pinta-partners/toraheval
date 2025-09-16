@@ -107,7 +107,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 - Supports elastic search syntax
 - Returns text snippets with highlights
 - Always follow up with \`read_text\` for complete context
-- **IMPORTANT**: Perform SEPARATE searches in Hebrew/Aramaic AND English to maximize coverage
+- **IMPORTANT**: Perform SEPARATE searches in Hebrew/Aramaic OR English to maximize coverage - not both in one search
 
 **Example pattern:**
 \`\`\`json
@@ -121,6 +121,24 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
 }
 
 // After analyzing results
+{
+  "name": "read_text",
+  "arguments": {"reference": "נועם אלימלך פרשת דברים פסקה א"}
+}
+\`\`\`
+
+\`\`\`json
+{
+  "name": "keywords_search",
+  "arguments": {
+    "text": "honesty business ethics",
+    "reference": "נועם אלימלך",
+    "num_results": 60
+  }
+}
+\`\`\`
+// After analyzing results
+\`\`\`json
 {
   "name": "read_text",
   "arguments": {"reference": "נועם אלימלך פרשת דברים פסקה א"}
@@ -160,7 +178,7 @@ For Semantic Search:
 - create a few variations of the query if needed, to capture different angles
 
 For Keywords Search:
-- Use precise Hebrew/Aramaic terms AND English terms (in separate searches)
+- Use precise Hebrew/Aramaic terms OR English terms (in separate searches)
 - Include synonyms and related terms in both languages
 - Perform multiple searches: one in Hebrew/Aramaic, one in English
 - If you get too many results, refine with more specific terms or filter topics or references
@@ -346,7 +364,7 @@ Step 2.2: broaden keywords search if too few results
 3. Include inline citation when relevant. use the following format: 
 > Quote here.
 >
-> -- <cite>Source</cite>
+  Source
 4. Distinguish between direct quotes and paraphrased content
 5. Never present information without attribution to a specific text
 5. For each detail in a response, you must specify the exact location (book, chapter, verse, page) where the information was found
@@ -530,7 +548,13 @@ const processChat = traceable(async function processChat(question, model, jewish
 
  '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance. 
  write in detail **EVERY** relevant source with the correct citation.
- \n\n also, i know that that this speficic source exists in your corpus, so don\'t give up until you find it.
+ \n\n When you find a relevant source, don\'t stop at the first occurrence - search thoroughly within that same work to find ALL places where this concept is mentioned. For example:
+ - If you find it in Rashi on Genesis 1:1, also check Rashi on other verses where this idea appears
+ - If you find it in Bava Metzia 58a, also search other pages in Bava Metzia and related tractates
+ - If you find it in one chapter of Mishneh Torah, search other relevant chapters in the same work
+ - If you find it in one section of Shulchan Aruch, check other relevant sections
+ 
+ List EVERY occurrence with complete citations, even if they seem similar. The user wants comprehensive coverage, not just representative examples.
  
  now, answer the following question:\n\n
  =========================================================\n\n`;
