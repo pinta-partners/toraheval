@@ -41,7 +41,18 @@ def ituria_js_api_target(inputs: dict) -> dict:
 
         if response.status_code == HTTPStatus.OK:
             data = response.json()
-            return {"answer": data["answer"]}
+            result = {"answer": data["answer"]}
+            
+            # Extract usage metadata if available from ituria-js response
+            if "usage_metadata" in data:
+                result["usage_metadata"] = data["usage_metadata"]
+            elif "reasoning_details" in data and data.get("reasoning_details"):
+                # Extract from reasoning details if available
+                reasoning_details = data["reasoning_details"]
+                if isinstance(reasoning_details, dict) and "usage" in reasoning_details:
+                    result["usage_metadata"] = reasoning_details["usage"]
+            
+            return result
         else:
             return {"answer": f"API Error {response.status_code}: {response.text}"}
 

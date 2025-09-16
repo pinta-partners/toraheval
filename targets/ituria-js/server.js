@@ -482,7 +482,6 @@ Based on this query:
 Then create a rewritten query that:
 - Acknowledges what you understand from their query
 - Asks specifically about the missing information needed to conduct an effective search
-- Offers 1-2 potential directions if appropriate
 - Uses respectful, knowledgeable language familiar to someone studying Jewish texts
 Format your response as a single, clear question that will help the user articulate exactly what they're trying to find.
 NEVER USE ANY MCP SERVERS OR TOOLS YOUR ONLY JOB IS TO REWRITE FAILING QUERIES
@@ -535,16 +534,33 @@ app.get('/health', (req, res) => {
 });
 
 // Main chat processing function wrapped with traceable
+// Implements Anthropic Claude prompt caching to reduce API costs:
+// - Caches system prompts (basic instruction + Jewish library usage guide)
+// - Caches tool definitions (MCP Jewish Library tools)
+// - Tracks cache hits/misses for cost monitoring
 const processChat = traceable(async function processChat(question, model, jewishLibraryTools) {
   console.log(`Processing question: ${question}`);
 
   // Step 1: Rewrite the query
   const rewrittenQuery = await rewriteQuery(question);
 
-  // System prompt for Torah Q&A (same as ituria)
-  const systemPrompt = `You are a Torah scholar assistant with access to comprehensive Jewish text database tools.`;
+  // System prompt for Torah Q&A with caching
+  const systemPrompt = [
+    {
+      type: "text",
+      text: "You are a Torah scholar assistant with access to comprehensive Jewish text database tools.",
+      // Cache the basic system prompt
+      cache_control: { type: "ephemeral" }
+    },
+    {
+      type: "text", 
+      text: jewish_library_usage_prompt,
+      // Cache the extensive Jewish library usage prompt
+      cache_control: { type: "ephemeral" }
+    }
+  ];
 
-  const prompt = jewish_library_usage_prompt + `
+  const instructionsPrompt = `
 
  '\n\n**VERY IMPORTANT**:  make sure you find **ALL** the places that this idea appears, not just one instance. 
  write in detail **EVERY** relevant source with the correct citation.
@@ -559,12 +575,30 @@ const processChat = traceable(async function processChat(question, model, jewish
  now, answer the following question:\n\n
  =========================================================\n\n`;
 
-  // Generate response using AI SDK with real MCP tools
+  const finalPrompt = instructionsPrompt + rewrittenQuery;
+
+  // Add caching to tools to reduce costs for repeated tool definitions
+  const cachedTools = {};
+  if (jewishLibraryTools && Object.keys(jewishLibraryTools).length > 0) {
+    const toolKeys = Object.keys(jewishLibraryTools);
+    const lastToolKey = toolKeys[toolKeys.length - 1];
+    
+    // Apply caching to the last tool to cache all tool definitions
+    for (const [key, tool] of Object.entries(jewishLibraryTools)) {
+      cachedTools[key] = {
+        ...tool,
+        ...(key === lastToolKey && { cache_control: { type: "ephemeral" } })
+      };
+    }
+  }
+
+  // Generate response using AI SDK with real MCP tools and caching
   const result = await generateText({
     model: anthropic.languageModel(model),
     system: systemPrompt,
-    prompt: prompt + rewrittenQuery,
-    tools: jewishLibraryTools,
+    prompt: finalPrompt,
+    tools: Object.keys(cachedTools).length > 0 ? cachedTools : jewishLibraryTools,
+    maxRetries: 25,
     maxSteps: 100,
     maxTokens: 15000,
     providerOptions: {
@@ -577,10 +611,29 @@ const processChat = traceable(async function processChat(question, model, jewish
     },
   });
 
+  // Extract usage metadata from the result including cache info
+  const usage_metadata = {
+    input_tokens: result.usage?.promptTokens || 0,
+    output_tokens: result.usage?.completionTokens || 0,
+    total_tokens: result.usage?.totalTokens || (result.usage?.promptTokens || 0) + (result.usage?.completionTokens || 0),
+    // Cache usage metadata for cost analysis
+    cache_creation_input_tokens: result.usage?.cacheCreationInputTokens || 0,
+    cache_read_input_tokens: result.usage?.cacheReadInputTokens || 0
+  };
+
+  // Log cache usage for monitoring cost savings
+  if (result.usage?.cacheReadInputTokens > 0) {
+    console.log(`💰 Cache hit! Saved ${result.usage.cacheReadInputTokens} tokens from cache`);
+  }
+  if (result.usage?.cacheCreationInputTokens > 0) {
+    console.log(`🔄 Cache created with ${result.usage.cacheCreationInputTokens} tokens`);
+  }
+
   return {
     answer: result.text,
     reasoning: result.reasoning,
     reasoningDetails: result.reasoningDetails,
+    usage_metadata: usage_metadata,
     timestamp: new Date().toISOString()
   };
 }, { name: "processChat" });

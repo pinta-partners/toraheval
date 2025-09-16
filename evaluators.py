@@ -1,5 +1,6 @@
 """Custom evaluators for Torah scholarship evaluation."""
 
+from langsmith import traceable
 from openevals.llm import create_llm_as_judge
 from openevals.prompts import RAG_HELPFULNESS_PROMPT
 
@@ -32,6 +33,10 @@ COMMENT: [Brief explanation of whether the exact source was found or not]
 """  # noqa: E501
 
 
+@traceable(
+    run_type="llm",
+    metadata={"ls_provider": "anthropic", "ls_model_name": "claude-sonnet-4-20250514"}
+)
 def correctness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """Return correctness evaluator result.
 
@@ -49,6 +54,10 @@ def correctness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     return eval_result
 
 
+@traceable(
+    run_type="llm",
+    metadata={"ls_provider": "anthropic", "ls_model_name": "claude-sonnet-4-20250514"}
+)
 def helpfulness_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """Return helpfulness evaluator result.
 
@@ -91,6 +100,10 @@ COMMENT: [Your explanation here]
 """
 
 
+@traceable(
+    run_type="llm",
+    metadata={"ls_provider": "anthropic", "ls_model_name": "claude-sonnet-4-20250514"}
+)
 def torah_citation_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """Return citation evaluator result.
 
@@ -133,6 +146,10 @@ COMMENT: [Your explanation here]
 """
 
 
+@traceable(
+    run_type="llm",
+    metadata={"ls_provider": "anthropic", "ls_model_name": "claude-sonnet-4-20250514"}
+)
 def hebrew_handling_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """Return hebrew evaluator result.
 
@@ -174,6 +191,10 @@ COMMENT: [Your explanation here]
 """
 
 
+@traceable(
+    run_type="llm",
+    metadata={"ls_provider": "anthropic", "ls_model_name": "claude-sonnet-4-20250514"}
+)
 def depth_analysis_evaluator(inputs: dict, outputs: dict, reference_outputs: dict):
     """Return depth analysis evaluator result.
 
