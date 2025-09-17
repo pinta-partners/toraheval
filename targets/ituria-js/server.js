@@ -511,20 +511,22 @@ ${rewrittenQuery}`;
 
   // Generate response using AI SDK 5.0 with caching and prepareStep
   const result = await generateText({
-    model: anthropic('claude-sonnet-4-20250514'),
+    //use haiku for faster responses during testing
+    model: anthropic('claude-sonnet-4-20250514'), //anthropic('claude-sonnet-4-20250514'),
     messages: messages,
     tools: Object.keys(cachedTools).length > 0 ? cachedTools : jewishLibraryTools,
     maxRetries: 5,
     stopWhen: stepCountIs(50),
     maxTokens: 15000,
- headers: {
-     "anthropic-beta": "context-1m-2025-08-07"
-    },
-    providerOptions: {
+        providerOptions: {
       anthropic: {
         thinking: { type: 'enabled', budgetTokens: 1200 },
       }
     },
+    headers: {
+      'anthropic-beta': 'context-1m-2025-08-07'
+    },
+
     // Enable detailed provider metadata for cache monitoring
     returnProviderMetadata: true,
     // Use prepareStep to cache conversation history and optimize message handling
@@ -532,25 +534,30 @@ ${rewrittenQuery}`;
       console.log(`📋 Preparing step ${stepNumber + 1}, ${messages.length} messages, ${steps.length} previous steps`);
       
       // Cache conversation history - find the last assistant message and cache it
-      if (messages.length > 3) {
-        const modifiedMessages = messages.map((message, index) => {
-          // Cache the last assistant response to preserve all conversation context
-          // This leaves only the latest user message uncached
-          if (message.role === 'assistant' && index === messages.length - 3) {
-            return {
-              ...message,
-              providerOptions: {
-                anthropic: { cacheControl: { type: 'ephemeral' } }
-              }
-            };
+      if (messages.length >= 4) {
+        // Find the last assistant message (excluding the very last message which should be user)
+        let lastAssistantIndex = -1;
+        for (let i = messages.length - 2; i >= 0; i--) {
+          if (messages[i].role === 'assistant') {
+            lastAssistantIndex = i;
+            break;
           }
-          return message;
-        });
+        }
         
-        console.log(`⚡ Applied cache control to conversation context (${messages.length} messages)`);
-        return {
-          messages: modifiedMessages
-        };
+        if (lastAssistantIndex >= 0) {
+          const modifiedMessages = [...messages];
+          modifiedMessages[lastAssistantIndex] = {
+            ...messages[lastAssistantIndex],
+            providerOptions: {
+              anthropic: { cacheControl: { type: 'ephemeral' } }
+            }
+          };
+          
+          console.log(`⚡ Applied cache control to conversation context (${messages.length} messages, cached at index ${lastAssistantIndex})`);
+          return {
+            messages: modifiedMessages
+          };
+        }
       }
       
       // For longer conversations (>15 messages), implement smart compression
