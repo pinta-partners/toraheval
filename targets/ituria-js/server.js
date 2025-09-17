@@ -59,7 +59,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
     "query": Your natural language question in English,
     "reference": Optional source filter,
     "topics": Optional topic filter,
-    "limit": 50-100
+    "limit": 15-35
   }
 }
 \`\`\`
@@ -77,7 +77,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
   "name": "semantic_search",
   "arguments": {
     "query": "What does Judaism teach about prayer in the morning?",
-    "limit": 80
+    "limit": 30
   }
 }
 
@@ -97,7 +97,7 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
     "text": "Hebrew/Aramaic/English search terms/words",
     "reference": "Optional source filter",
     "topics": "Optional topic filter",
-    "num_results": 50-100
+    "num_results": 15-35
   }
 }
 \`\`\`
@@ -116,29 +116,11 @@ This guide provides systematic instructions for LLMs to interact with the Jewish
   "arguments": {
     "text": "צדקה שפע ברכה",
     "reference": "נועם אלימלך",
-    "num_results": 60
+    "num_results": 20
   }
 }
 
 // After analyzing results
-{
-  "name": "read_text",
-  "arguments": {"reference": "נועם אלימלך פרשת דברים פסקה א"}
-}
-\`\`\`
-
-\`\`\`json
-{
-  "name": "keywords_search",
-  "arguments": {
-    "text": "honesty business ethics",
-    "reference": "נועם אלימלך",
-    "num_results": 60
-  }
-}
-\`\`\`
-// After analyzing results
-\`\`\`json
 {
   "name": "read_text",
   "arguments": {"reference": "נועם אלימלך פרשת דברים פסקה א"}
@@ -186,14 +168,13 @@ For Keywords Search:
 
 ### Example Combined Search Pattern
 
-
 \`\`\`json
 // Step 1: Semantic search for concept understanding
 {
   "name": "semantic_search",
   "arguments": {
     "query": "What are the laws of Shabbat candles?",
-    "limit": 60
+    "limit": 25
   }
 }
 
@@ -203,27 +184,7 @@ For Keywords Search:
   "arguments": {
     "text": "נר שבת (הדלקה OR הדלקת)",
     "topics": "הלכה",
-    "num_results": 40
-  }
-}
-
-// Step 2b: Keywords search in English
-{
-  "name": "keywords_search",
-  "arguments": {
-    "text": "Shabbat candles lighting",
-    "topics": "הלכה",
-    "num_results": 40
-  }
-}
-
-// Step 2b: Keywords search in English
-{
-  "name": "keywords_search",
-  "arguments": {
-    "text": "Shabbat candles lighting",
-    "topics": "הלכה",
-    "num_results": 40
+    "num_results": 20
   }
 }
 
@@ -232,7 +193,6 @@ For Keywords Search:
   "name": "read_text",
   "arguments": {"reference": "שולחן ערוך אורח חיים סימן רסג"}
 }
-
 \`\`\`
 
 ### Special Case: Direct Reference Queries
@@ -255,64 +215,40 @@ If the user provides an exact reference, retrieve it directly but also consider 
 // Step 1: Semantic search for initial understanding
 {
   "name": "semantic_search",
-  "arguments": {"query": "What is the Jewish view on business ethics?", "limit": 70}
+  "arguments": {"query": "What is the Jewish view on business ethics?", "limit": 25}
 }
 
-Step 1.1: try a few variations of the semantic query if needed
-  {
-  "name": "semantic_search",
-  "arguments": {"query": "How does Judaism define honesty in commerce?", "limit": 65}
-  }
-
-// Step 2: Keywords search in parallel
+// Step 2: Keywords search for specific terms
 {
   "name": "keywords_search",
-  "arguments": {"text": "משא ומתן AND (אמונה OR יושר)", "topics": "הלכה"}
+  "arguments": {"text": "משא ומתן AND יושר", "topics": "הלכה", "num_results": 20}
 }
 
-Step 2.1: refine keywords search if too many or too few results
-{
-  "name": "keywords_search",
-  "arguments": {"text": "משא ומתן AND יושר", "topics": "הלכה", "num_results": 70}
-}
-Step 2.2: broaden keywords search if too few results
-{
-  "name": "keywords_search",
-  "arguments": {"text": "משא ומתן", "topics": "הלכה", "num_results": 100}
-}
-
-// Step 3: Retrieve full text of relevant sources from both searches
+// Step 3: Retrieve full text of relevant sources
 {
   "name": "read_text",
   "arguments": {"reference": "בבא מציעא דף נח"}
 }
-
 \`\`\`
 
 ### Pattern 2: Chained Exploration
 \`\`\`json
-// Step 1: Start with keywords search for specific terms
+// Step 1: Keywords search for specific terms
 {
   "name": "keywords_search",
-  "arguments": {"text": "צדקה AND ברכה", "num_results": 50}
+  "arguments": {"text": "צדקה AND ברכה", "num_results": 20}
 }
 
-// Step 2: Read full text of top relevant results
+// Step 2: Read full text of relevant results
 {
   "name": "read_text",
   "arguments": {"reference": "משנה תורה הלכות מתנות עניים פרק יז הלכה א"}
 }
 
-// Step 3: Get commentaries on key passages
+// Step 3: Get commentaries for depth
 {
   "name": "get_commentaries",
   "arguments": {"reference": "משנה תורה הלכות מתנות עניים פרק יז הלכה א"}
-}
-
-// Step 4: Read important commentaries for depth
-{
-  "name": "read_text",
-  "arguments": {"reference": "רמב"ם משנה תורה הלכות מתנות עניים פרק יז הלכה א פירוש הרמב"ם"}
 }
 \`\`\`
 
@@ -331,11 +267,7 @@ Step 2.2: broaden keywords search if too few results
 - Talmudic concepts: Use rabbinic Hebrew/Aramaic
 - Modern queries: Convert to appropriate traditional terminology
 
-| Modern Term | Traditional Search Term |
-|-------------|-------------------------|
-| "speech" | "דיבור" |
-| "why" | "מאי טעמא" (Talmudic) |
-| "said" | "ויאמר" (Biblical) |
+Examples: "speech" → "דיבור", "why" → "מאי טעמא", "said" → "ויאמר"
 
 ### 3. Link Handling and Citation Protocol
 **CRITICAL REQUIREMENT**: All source citations must be presented as clickable links whenever possible.
@@ -347,92 +279,40 @@ Step 2.2: broaden keywords search if too few results
 4. **Multiple link formats**: Use various link formats (inline links, reference lists, etc.) to maximize accessibility
 
 #### Implementation Guidelines:
-- When MCP tools return results with URLs, **ALWAYS** include these URLs as clickable links in your response
+- Always include URLs as clickable links in your response
 - Present references in formats like: [שולחן ערוך אורח חיים סימן א](https://)
-- For reference lists, maintain link functionality: 
-  \`\`\`
-  מקורות:
-  1. [בראשית פרק א פסוק א](https://app---d5ab5982.base44.app/BookReader?slug=בראשית&sectionId=פרק_א_פסוק_א)
-  2. [רש"י על בראשית פרק א פסוק א פירוש א](https://app---d5ab5982.base44.app/BookReader?slug=רשי על בראשית&sectionId=פרק_א_פסוק_א_פירוש_א)
-  \`\`\`
-- **Never present a source citation without its corresponding link** when available from the search results
+- Never present a source citation without its corresponding link when available
 
 ### 4. Attribution Protocol
 **CRITICAL**:your answer should be based **ONLY** on sources found with your tools. **NEVER** answer based only on your prior knowledge.
 1. Always cite exact source for every piece of information
-2. Include full reference (e.g., "שולחן ערוך אורח חיים סימן א סעיף ג")
-3. Include inline citation when relevant. use the following format: 
-> Quote here.
->
-  Source
-4. Distinguish between direct quotes and paraphrased content
-5. Never present information without attribution to a specific text
-5. For each detail in a response, you must specify the exact location (book, chapter, verse, page) where the information was found
-6. Whenever possible, include direct quotes alongside your explanations to provide primary textual evidence
-7. **CRITICAL LANGUAGE REQUIREMENT**: Your final answer should be in **RABBINICAL Hebrew**, not modern Hebrew or English, even if the question was asked in English. Your thinking process should be in English, but the final response must be in Rabbinical Hebrew.
+2. Include full reference and direct quotes when possible
+3. **CRITICAL LANGUAGE REQUIREMENT**: Your final answer should be in **RABBINICAL Hebrew**, not modern Hebrew or English, even if the question was asked in English.
 
-### 5. Context-Building Protocol
-1. When finding a specific verse or section, always consider retrieving the entire chapter
-2. For key passages, always check for available commentaries
-3. Read relevant commentaries to provide depth and nuance to your responses
-4. Cross-reference related passages to ensure comprehensive understanding
-
-### 6. Error Handling Protocol
-1. If search yields no results, acknowledge explicitly
-2. Suggest alternative search terms when appropriate
-3. Never fabricate references or content
-4. Consider spelling variations for important terms
+### 5. Error Handling Protocol
+1. If search yields no results, acknowledge explicitly and suggest alternatives
+2. Never fabricate references or content
+3. Consider spelling variations for important terms
 
 ## Processing Results Algorithmically
 
-### For semantic_search results:
-1. Identify all source references provided
-2. Use \`read_text\` with these references to retrieve complete texts
-3. Verify information from original sources before providing final answers
-
-### For keywords_search results:
-1. Review returned snippets and highlighted terms
-2. Identify potentially relevant matches based on context
-3. Prioritize references where snippets suggest high relevance
-4. CRITICAL: Retrieve full text using \`read_text\` before drawing conclusions
-5. Get commentaries for key passages to understand different interpretations
-6. Read complete context surrounding matched terms
+### For All Search Results:
+1. Always use \`read_text\` to retrieve complete texts - never rely on snippets alone
+2. Get commentaries for key passages when needed
+3. Verify all information from original sources before providing final answers
 
 ## Function Selection Guidelines
 
-### When to use semantic_search AND keywords_search together:
-- For most queries, use BOTH search methods in parallel
-- This ensures comprehensive results capturing both conceptual and term-specific matches
-- Cross-reference results from both methods to identify the most relevant sources
-
-### When to use get_commentaries:
-- After identifying important passages through any search method
-- When deeper understanding of a text's interpretation is needed
-- When different scholarly perspectives might provide important insights
-- When a passage seems difficult to understand in its plain meaning
-- To verify the traditional or authoritative understanding of a text
+### When to use different functions:
+- **Both semantic_search AND keywords_search**: For most queries, use both in parallel
+- **get_commentaries**: After identifying important passages for deeper understanding
 
 ## Common Pitfalls and Prevention
 
-1. **Hallucination Prevention:**
-   - Verify all information through explicit searches
-   - **NEVER** rely on prior knowledge, always validate every piece of information
-   - if no relevanat sources was found using tools, notify the user, but **DON'T** use your prior knowledge instead
-   - Clearly distinguish between searched information and explanatory comments
-
-2. **Reference Format Errors:**
-   - Use exact reference format returned by search results
-   - Preserve Hebrew characters and punctuation exactly
-   - Follow the books/chapters/verses organization of original sources
-
-3. **Scope Limitation Awareness:**
-   - Clearly state when information isn't found
-   - Acknowledge the boundaries of the available corpus
-   - Never fabricate results for gaps in the library
-
-4. **Context Loss Prevention:**
-   - Always read the entire chapter or section when examining specific verses
-   - Consider the historical and cultural context of the text
+1. **Use ONLY sources found with tools** - never rely on prior knowledge
+2. **Use exact reference formats** from search results
+3. **Read full texts** - never rely only on search snippets
+4. **Acknowledge when information isn't found** - never fabricate
 
 Remember: The purpose of this system is to provide accurate, source-based information from Jewish texts, not to generate creative interpretations. **USE ONLY SOURCES THAT YOU GOT FROM THE TOOLS AND NOT YOUR PRIOR KNOWLEDGE**
 
@@ -594,16 +474,13 @@ ${rewrittenQuery}`;
   const messages = [
     {
       role: 'system',
-      content: baseSystemPrompt,
-      providerOptions: {
-        anthropic: { cacheControl: { type: 'ephemeral', ttl: '1h' } }
-      }
+      content: baseSystemPrompt
     },
     {
       role: 'user',
       content: jewish_library_usage_prompt,
       providerOptions: {
-        anthropic: { cacheControl: { type: 'ephemeral', ttl: '1h' } }
+        anthropic: { cacheControl: { type: 'ephemeral' } }
       }
     },
     {
@@ -623,12 +500,7 @@ ${rewrittenQuery}`;
     // Apply 1-hour caching to the last tool to cache all tool definitions
     for (const [key, tool] of Object.entries(jewishLibraryTools)) {
       cachedTools[key] = {
-        ...tool,
-        ...(key === lastToolKey && { 
-          providerOptions: {
-            anthropic: { cacheControl: { type: 'ephemeral', ttl: '1h' } }
-          }
-        })
+        ...tool
       };
     }
   }
@@ -643,20 +515,28 @@ ${rewrittenQuery}`;
     messages: messages,
     tools: Object.keys(cachedTools).length > 0 ? cachedTools : jewishLibraryTools,
     maxRetries: 5,
-    stopWhen: stepCountIs(10),
-    maxTokens: 2000,
-    
+    stopWhen: stepCountIs(50),
+    maxTokens: 15000,
+ headers: {
+     "anthropic-beta": "context-1m-2025-08-07"
+    },
+    providerOptions: {
+      anthropic: {
+        thinking: { type: 'enabled', budgetTokens: 1200 },
+      }
+    },
+    // Enable detailed provider metadata for cache monitoring
+    returnProviderMetadata: true,
     // Use prepareStep to cache conversation history and optimize message handling
     prepareStep: async ({ stepNumber, steps, messages }) => {
       console.log(`📋 Preparing step ${stepNumber + 1}, ${messages.length} messages, ${steps.length} previous steps`);
       
-      // For multi-step conversations, cache recent conversation history
-      if (stepNumber > 0 && messages.length > 3) {
-        // Find the last user message and apply cache control to conversation context
+      // Cache conversation history - find the last assistant message and cache it
+      if (messages.length > 3) {
         const modifiedMessages = messages.map((message, index) => {
-          // Cache the conversation context (everything except the latest user message)
-          // This helps with multi-step tool calling scenarios
-          if (index === messages.length - 2 && message.role === 'user') {
+          // Cache the last assistant response to preserve all conversation context
+          // This leaves only the latest user message uncached
+          if (message.role === 'assistant' && index === messages.length - 3) {
             return {
               ...message,
               providerOptions: {
@@ -667,7 +547,7 @@ ${rewrittenQuery}`;
           return message;
         });
         
-        console.log(`⚡ Applied cache control to conversation context at step ${stepNumber + 1}`);
+        console.log(`⚡ Applied cache control to conversation context (${messages.length} messages)`);
         return {
           messages: modifiedMessages
         };
@@ -684,14 +564,17 @@ ${rewrittenQuery}`;
         // Keep last 8 messages from conversation
         const recentMessages = otherMessages.slice(-8);
         
-        // Apply cache control to the oldest kept message to cache the truncated context
-        if (recentMessages.length > 0) {
-          recentMessages[0] = {
-            ...recentMessages[0],
-            providerOptions: {
-              anthropic: { cacheControl: { type: 'ephemeral' } }
-            }
-          };
+        // Apply cache control to the last assistant message in recent messages
+        for (let i = recentMessages.length - 2; i >= 0; i--) {
+          if (recentMessages[i].role === 'assistant') {
+            recentMessages[i] = {
+              ...recentMessages[i],
+              providerOptions: {
+                anthropic: { cacheControl: { type: 'ephemeral' } }
+              }
+            };
+            break;
+          }
         }
         
         return {
